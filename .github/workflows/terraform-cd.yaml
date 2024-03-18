@@ -1,0 +1,75 @@
+name: Terraform Deployment
+
+on:
+  push:
+    paths:
+      - 'terraform/**' # Trigger only when changes are made to files in the terraform directory or subdirectories
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      repository-projects: write
+
+    strategy:
+      max-parallel: 3 # Set the maximum number of parallel jobs to 3
+      matrix:
+        target_environment:
+          - {BUCKET_NAME: "helpme-infra", environment: "dev", region: "us-east-1"}
+          - {BUCKET_NAME: "helpme-infra", environment: "staging", region: "us-east-1"}
+          - {BUCKET_NAME: "helpme-infra", environment: "production", region: "us-east-1"}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set ENV variables to get the repo name
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}" >> $GITHUB_ENV
+
+      - name: Use the custom ENV variable
+        run: echo $REPO_NAME
+        env:
+          REPO_NAME: $REPO_NAME
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4 # More information on this action can be found below in the 'AWS Credentials' section
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: GithubActionsSession
+
+      - name: Configure AWS Credentials
+        run: aws sts get-caller-identity
+
+      - name: Terraform fmt
+        working-directory: terraform
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Initialize Terraform
+        working-directory: terraform
+        run: terraform init -backend-config="bucket=${{ matrix.target_environment.BUCKET_NAME }}" -backend-config="key=${{ env.REPO_NAME }}/app_runner/${{ matrix.target_environment.environment }}.tfstate" -backend-config="region=us-east-1" -backend-config="dynamodb_table=terraform-state-lock-file"
+
+      - name: Select Terraform workspace
+        working-directory: terraform
+        run: terraform workspace select ${{ matrix.target_environment.environment }} || terraform workspace new ${{ matrix.target_environment.environment }}
+        
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan -out tfplan.out -var="access_token=${{ secrets.TOKEN }}"  -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+
+      - name: Terraform Apply
+        working-directory: terraform
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'  # Deploy only for main branch
+        run: terraform apply -auto-approve -var="access_token=${{ secrets.TOKEN }}"  -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        continue-on-error: true
+
+      - name: Terraform destroy
+        working-directory: terraform
+        run: terraform destroy -auto-approve -var="access_token=${{ secrets.TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars" 
