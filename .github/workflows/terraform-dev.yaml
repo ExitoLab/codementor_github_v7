@@ -200,10 +200,9 @@ jobs:
 
       # Add this to get token from github oauth app
       - name: Set the newly created PR to auto merge
-        run:  gh pr merge --auto --merge --delete-branch
-        #run:  gh pr merge --auto --merge $PR_NUMBER --delete-branch
+        run:  gh pr merge --auto --merge $PR_NUMBER --delete-branch
         env: 
-          GITHUB_TOKEN: ${{secrets.TOKEN}}
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
   deploy-terraform-dev:
     needs: update_tfvars
@@ -256,9 +255,9 @@ jobs:
 
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var="access_token=${{ secrets.TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform plan -var="access_token=${{ env.GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -auto-approve -var="access_token=${{ secrets.TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform apply -auto-approve -var="access_token=${{ env.GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
         continue-on-error: true
