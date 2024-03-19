@@ -144,6 +144,14 @@ jobs:
         run: |
           echo $TIMESTAMP
 
+      # Add this to get token from github oauth app
+      - name: Get Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v3
+        with:
+          application_id: ${{ secrets.APPLICATION_ID }}
+          application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}
+
       - name: Set up Git
         run: |
           git config --global user.email " ${{ env.GIT_EMAIL }} "
@@ -171,25 +179,27 @@ jobs:
           git commit -m "Update image identifier"
           git push --set-upstream origin feature/update-image-identifier-${{ env.TARGET_ENVIRONMENT }}-${{ env.TIMESTAMP }}
 
-      - name: Create Pull Request
-        run: |
-          TOKEN=$(curl -X POST -s -H "Authorization: token ${TOKEN}" -d '{"title": "Update image identifier", "body": "Update image identifier", "head": "feature/update-image-identifier-${{ env.TARGET_ENVIRONMENT }}-${{ env.TIMESTAMP }}", "base": "${{ env.TARGET_ENVIRONMENT }}" }' https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls | jq -r '.token')
-          echo "Pull Request created"
-
-      - name: Merge Pull Request
-        run: |
-          PR_NUMBER=$(curl -X GET -s -H "Authorization: token ${TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls | jq -r '.[0].number')
-          echo "Merging Pull Request: $PR_NUMBER"
-          curl -X PUT -s -H "Authorization: token ${TOKEN}" -d '{"merge_method": "merge"}' https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/merge
+      # Add this to get token from github oauth app
+      - name: Authenticate with GitHub CLI
+        run: gh auth login --with-token <<< "${{ steps.get_workflow_token.outputs.token }}"
      
+     # Add this to get token from github oauth app
       - name: Create Pull Request
         run: |
-          gh pr create --title "Update image identifier " --body "Update image identifier" --base "develop" --head "feature/update-image-identifier-dev-${{ env.TIMESTAMP }}"
+          PR_NUMBER=$(gh pr create --title "Update image identifier " --body "Update image identifier" --base "${{ env.BRANCH }}" --head "feature/update-image-identifier-dev-${{ env.TIMESTAMP }}" | jq -r '.number')
+          echo "PR Number: $PR_NUMBER"
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
+      # Add this to get token from github oauth app
+      - name: Display PR
+        run: |
+          echo $PR_NUMBER
+
+      # Add this to get token from github oauth app
       - name: Set the newly created PR to auto merge
-        run:  gh pr merge --auto --merge --delete-branch
+        run:  gh pr merge --auto --merge $PR_NUMBER --delete-branch
         env: 
           GITHUB_TOKEN: ${{secrets.TOKEN}}
 
