@@ -268,9 +268,9 @@ jobs:
 
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var="access_token=${{ GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform plan -var="access_token=$GITHUB_TOKEN" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -auto-approve -var="access_token=${{ GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform apply -auto-approve -var="access_token=$GITHUB_TOKEN " -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
         continue-on-error: true
