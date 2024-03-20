@@ -233,6 +233,14 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           role-session-name: GithubActionsSession
 
+      - name: Set ENV variables to get the repo name
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}" >> $GITHUB_ENV
+
+      - name: Use the custom ENV variable
+        run: echo $REPO_NAME
+        env:
+          REPO_NAME: $REPO_NAME
+
       #Copy
       - name: Get Token to use for amplify
         id: get_workflow_token_amplify
