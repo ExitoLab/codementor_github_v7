@@ -198,16 +198,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
-      # Add this to get token from github oauth app
+      #Copy
       - name: Display PR
         run: |
           echo $PR_NUMBER
 
-      # Add this to get token from github oauth app
+      #Copy
       - name: Set the newly created PR to auto merge
         run:  gh pr merge --auto --merge $PR_NUMBER --delete-branch
         env: 
           GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+
+      #Copy
+      - name: Set ENV variables for GITHUB_TOKEN
+        run: echo "GITHUB_TOKEN=${{ steps.get_workflow_token.outputs.token }}" >> $GITHUB_ENV
+
+      #Copy
+      - name: Use the GITHUB_TOKEN ENV variable
+        run: echo $GITHUB_TOKEN
+        env:
+          GITHUB_TOKEN: $GITHUB_TOKEN
 
   deploy-terraform-dev:
     needs: update_tfvars
@@ -236,14 +246,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
           role-session-name: GithubActionsSession
-
-      - name: Set ENV variables to get the repo name
-        run: echo "REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}" >> $GITHUB_ENV
-
-      - name: Use the custom ENV variable
-        run: echo $REPO_NAME
-        env:
-          REPO_NAME: $REPO_NAME
 
       - name: Display GITHUB_TOKEN
         run: | 
