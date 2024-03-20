@@ -242,7 +242,7 @@ jobs:
 
       - name: Display GITHUB_TOKEN
         run: | 
-          echo $${{ env.GITHUB_TOKEN }}
+          echo ${{ env.GITHUB_TOKEN }}
           echo "Hello"
 
       - name: Terraform fmt
