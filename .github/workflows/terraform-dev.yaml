@@ -240,6 +240,11 @@ jobs:
         env:
           REPO_NAME: $REPO_NAME
 
+      - name: Display GITHUB_TOKEN
+        run: | 
+          echo $${{ env.GITHUB_TOKEN }}
+          echo "Hello"
+
       - name: Terraform fmt
         working-directory: terraform
         run: terraform fmt -check
