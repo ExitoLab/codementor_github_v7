@@ -109,7 +109,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: push-app-ecr
     outputs:
-      token: ${{ steps.get_workflow_token.outputs.token }}
+      GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
+
     env:
       GIT_EMAIL: "igeadetokunbo@gmail.com"
       TARGET_ENVIRONMENT: dev
