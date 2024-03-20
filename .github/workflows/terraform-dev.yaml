@@ -209,16 +209,6 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
-      #Copy
-      - name: Set ENV variables for GITHUB_TOKEN
-        run: echo "GITHUB_TOKEN=${{ steps.get_workflow_token.outputs.token }}" >> $GITHUB_ENV
-
-      #Copy
-      - name: Use the GITHUB_TOKEN ENV variable
-        run: echo $GITHUB_TOKEN
-        env:
-          GITHUB_TOKEN: $GITHUB_TOKEN
-
   deploy-terraform-dev:
     needs: update_tfvars
     runs-on: ubuntu-latest
@@ -247,10 +237,13 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           role-session-name: GithubActionsSession
 
-      - name: Display GITHUB_TOKEN
-        run: | 
-          echo ${{ needs.update_tfvars.outputs.GITHUB_TOKEN }}
-          echo "Hello"
+      #Copy
+      - name: Get Token to use for amplify
+        id: get_workflow_token_amplify
+        uses: peter-murray/workflow-application-token-action@v3
+        with:
+          application_id: ${{ secrets.APPLICATION_ID }}
+          application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}          
 
       - name: Terraform fmt
         working-directory: terraform
@@ -267,9 +260,9 @@ jobs:
 
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var="access_token=${{ needs.update_tfvars.outputs.GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform plan -var="access_token=${{ steps.get_workflow_token_amplify.outputs.token }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -auto-approve -var="access_token=${{ needs.update_tfvars.outputs.GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform apply -auto-approve -var="access_token=${{ steps.get_workflow_token_amplify.outputs.token }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
         continue-on-error: true
