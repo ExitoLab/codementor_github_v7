@@ -196,7 +196,7 @@ jobs:
           echo "PR Number: $PR_NUMBER"
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
         env:
-          GITHUB_TOKEN: $GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
       # Add this to get token from github oauth app
       - name: Display PR
