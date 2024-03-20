@@ -108,6 +108,8 @@ jobs:
     name: Update the image tag with new image
     runs-on: ubuntu-latest
     needs: push-app-ecr
+    outputs:
+      token: ${{ steps.get_workflow_token.outputs.token }}
     env:
       GIT_EMAIL: "igeadetokunbo@gmail.com"
       TARGET_ENVIRONMENT: dev
@@ -242,7 +244,7 @@ jobs:
 
       - name: Display GITHUB_TOKEN
         run: | 
-          echo ${{ env.GITHUB_TOKEN }}
+          echo "${{ needs.update_tfvars.outputs.GITHUB_TOKEN }}"
           echo "Hello"
 
       - name: Terraform fmt
@@ -260,9 +262,9 @@ jobs:
 
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var="access_token=${{ env.GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform plan -var="access_token=${{ needs.update_tfvars.outputs.GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
 
       - name: Terraform Apply
         working-directory: terraform
-        run: terraform apply -auto-approve -var="access_token=${{ env.GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform apply -auto-approve -var="access_token=${{ needs.update_tfvars.outputs.GITHUB_TOKEN }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
         continue-on-error: true
