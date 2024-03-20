@@ -111,7 +111,7 @@ jobs:
 
     # Copy
     outputs:
-      GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }
+      GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
     env:
       GIT_EMAIL: "igeadetokunbo@gmail.com"
