@@ -158,10 +158,6 @@ jobs:
           application_id: ${{ secrets.APPLICATION_ID }}
           application_private_key: ${{ secrets.APPLICATION_PRIVATE_KEY }}
 
-      #Copy
-      - name: Set GITHUB_TOKEN as environment variable
-        run: echo "GITHUB_TOKEN=${{ steps.get_workflow_token.outputs.token }}" >> $GITHUB_ENV
-
       - name: Set up Git
         run: |
           git config --global user.email " ${{ env.GIT_EMAIL }} "
@@ -211,7 +207,7 @@ jobs:
       - name: Set the newly created PR to auto merge
         run:  gh pr merge --auto --merge $PR_NUMBER --delete-branch
         env: 
-          GITHUB_TOKEN: $GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ steps.get_workflow_token.outputs.token }}
 
   deploy-terraform-dev:
     needs: update_tfvars
