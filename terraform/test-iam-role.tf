@@ -1,6 +1,7 @@
 resource "aws_iam_openid_connect_provider" "example_oidc_provider" {
-  url            = "YOUR_OIDC_PROVIDER_URL"
-  client_id_list = ["token.actions.githubusercontent.com"]
+  url             = "YOUR_OIDC_PROVIDER_URL"
+  client_id_list  = ["token.actions.githubusercontent.com"]
+  thumbprint_list = ["1b511abead59c6ce207077c0bf0e0043b1382612"]
 }
 
 resource "aws_iam_role" "example_role" {
