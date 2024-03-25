@@ -24,6 +24,7 @@ resource "aws_iam_role" "example_role" {
   })
 }
 
+
 resource "aws_iam_policy" "example_policy" {
   name        = "example-policy"
   description = "Allows access to Secrets Manager and a specific resource"
