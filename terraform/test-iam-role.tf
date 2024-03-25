@@ -1,7 +1,5 @@
-resource "aws_iam_openid_connect_provider" "example_oidc_provider" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = ["1b511abead59c6ce207077c0bf0e0043b1382612"]
+data "aws_iam_openid_connect_provider" "example_oidc_provider" {
+  arn = "arn:aws:iam::289940214902:oidc-provider/token.actions.githubusercontent.com"
 }
 
 resource "aws_iam_role" "example_role" {
@@ -12,12 +10,12 @@ resource "aws_iam_role" "example_role" {
       {
         "Effect" : "Allow",
         "Principal" : {
-          "Federated" : aws_iam_openid_connect_provider.example_oidc_provider.arn
+          "Federated" : data.aws_iam_openid_connect_provider.example_oidc_provider.arn
         },
         "Action" : "sts:AssumeRoleWithWebIdentity",
         "Condition" : {
           "StringEquals" : {
-            "${aws_iam_openid_connect_provider.example_oidc_provider.url}:sub" : "user@example.com" # Replace with your desired sub claim value
+            "${data.aws_iam_openid_connect_provider.example_oidc_provider.url}:sub" : "user@example.com" # Replace with your desired sub claim value
           }
         }
       }
