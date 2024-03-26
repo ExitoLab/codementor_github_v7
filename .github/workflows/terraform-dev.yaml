@@ -262,11 +262,17 @@ jobs:
         working-directory: terraform
         run: terraform workspace select ${{ matrix.target_environment.environment }} || terraform workspace new ${{ matrix.target_environment.environment }}
 
+        #copy
       - name: Terraform Plan
         working-directory: terraform
-        run: terraform plan -var="access_token=${{ steps.get_workflow_token_amplify.outputs.token }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform plan -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        env:
+          TF_VARS_access_token: ${{ steps.get_workflow_token_amplify.outputs.token }}
 
+        #copy
       - name: Terraform Apply
         working-directory: terraform
         run: terraform apply -auto-approve -var="access_token=${{ steps.get_workflow_token_amplify.outputs.token }}" -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
         continue-on-error: true
+        env:
+          TF_VARS_access_token: ${{ steps.get_workflow_token_amplify.outputs.token }}
