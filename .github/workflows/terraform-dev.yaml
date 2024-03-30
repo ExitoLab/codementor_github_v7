@@ -270,9 +270,16 @@ jobs:
           TF_VAR_access_token: ${{ steps.get_workflow_token_amplify.outputs.token }}
 
         #copy
-      - name: Terraform Apply
+      # - name: Terraform Apply
+      #   working-directory: terraform
+      #   run: terraform apply -auto-approve -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+      #   continue-on-error: true
+      #   env:
+      #     TF_VAR_access_token: ${{ steps.get_workflow_token_amplify.outputs.token }}
+      
+      - name: Terraform destroy
         working-directory: terraform
-        run: terraform apply -auto-approve -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
+        run: terraform destroy -auto-approve -var-file="vars/${{ matrix.target_environment.environment }}.tfvars"
         continue-on-error: true
         env:
           TF_VAR_access_token: ${{ steps.get_workflow_token_amplify.outputs.token }}
